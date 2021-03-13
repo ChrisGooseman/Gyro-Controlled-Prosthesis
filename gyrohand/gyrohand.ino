@@ -21,8 +21,9 @@
 // Setting up MPU6050
 Adafruit_MPU6050 mpu;
 
-// Debugging functions prototypes
+// Debugging function prototypes and variables
 void serialDebug(sensors_event_t, sensors_event_t);
+int maxVal = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -80,6 +81,12 @@ void serialDebug(sensors_event_t a, sensors_event_t g){
   Serial.print("Z: ");
   Serial.print(g.gyro.z, 2);
   Serial.println(" rps");
+
+  if(g.gyro.y > maxVal)
+    maxVal = g.gyro.y;
+
+  Serial.print("MAX: ");
+  Serial.println(maxVal);
   
   delay(100);
 }
