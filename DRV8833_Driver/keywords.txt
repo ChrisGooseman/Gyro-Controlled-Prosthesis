@@ -1,0 +1,7 @@
+DRV8833 KEYWORD1
+motorA_rev  KEYWORD2
+motorA_fwd  KEYWORD2
+motorA_stop KEYWORD2
+motorB_rev  KEYWORD2
+motorB_fwd  KEYWORD2
+motorB_stop KEYWORD2
