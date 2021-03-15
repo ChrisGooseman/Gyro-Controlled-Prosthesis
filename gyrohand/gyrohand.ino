@@ -21,8 +21,14 @@
 // Setting up MPU6050
 Adafruit_MPU6050 mpu;
 
+// Setting up motor Encoders
+Encoder encA(2, 3); // Interrupt pins provide better results for readings
+long a_oldPosition = -999;
+long a_newPosition;
+
 // Debugging function prototypes and variables
-void serialDebug(sensors_event_t, sensors_event_t);
+void serialMpuDebug(sensors_event_t, sensors_event_t);
+void serialEncDebug();
 int maxVal = 0;
 
 void setup() {
@@ -46,16 +52,18 @@ void loop() {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
   
-  serialDebug(a, g);
+  serialMpuDebug(a, g);
+  serialEncDebug();
 }
 
 /****** FUNCTION DEFINITIONS ******/
 
-/* Print variables to serial monitor to determine Thresholds values for Gyroscope.
+/* 
+ *  Print variables to serial monitor to determine Thresholds values for Gyroscope.
  * @a - accelerometer values
  * @g - gyroscope values
  */
-void serialDebug(sensors_event_t a, sensors_event_t g){
+void serialMpuDebug(sensors_event_t a, sensors_event_t g){
   
   // Serial display for debugging
   // Accelerometer values
@@ -90,3 +98,18 @@ void serialDebug(sensors_event_t a, sensors_event_t g){
   
   delay(100);
 }
+
+/*
+ * Print Encoder position for motor debugging
+ */
+ void serialEncDebug(){
+  a_newPosition = encA.read();
+
+  if(a_newPosition != a_oldPosition){
+    a_oldPosition = a_newPosition;
+  }
+  Serial.print("A Encoder: ");
+  Serial.println(a_newPosition);
+  
+  delay(100);
+ }
