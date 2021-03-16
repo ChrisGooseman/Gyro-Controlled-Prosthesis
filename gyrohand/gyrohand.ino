@@ -26,10 +26,27 @@ Encoder encA(2, 3); // Interrupt pins provide better results for readings
 long a_oldPosition = -999;
 long a_newPosition;
 
+// Setting up motor Drivers
+DRV8833 drvOne(6, 7);
+
+// Hand state variables
+bool isOpen = true;
+
+// Variable to see if utility is trying to be triggered
+bool trigger = false;
+int gyroThreshold = 15;
+int timeThreshold = 2000;
+int timeDebounce = 100;
+int timeStart;
+int timeNow;
+
 // Debugging function prototypes and variables
 void serialMpuDebug(sensors_event_t, sensors_event_t);
 void serialEncDebug();
 int maxVal = 0;
+
+// Gesture Functions
+void grasp();
 
 void setup() {
   Serial.begin(115200);
@@ -52,8 +69,28 @@ void loop() {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
   
-  serialMpuDebug(a, g);
-  serialEncDebug();
+  //serialMpuDebug(a, g);
+  //serialEncDebug();
+
+  // Check for grasp trigger
+  if(g.gyro.y >= gyroThreshold){
+    timeStart = millis();
+    trigger = true;
+  }
+  timeNow = millis();
+
+  while(trigger && (timeNow - timeStart <= timeThreshold)){
+    while(timeNow - timeStart <= timeDebounce){
+      timeNow = millis();
+    }
+    mpu.getEvent(&a, &g, &temp);
+    if(g.gyro.y >= gyroThreshold){
+      grasp();
+      trigger = false;
+    }
+    timeNow = millis();
+  }
+  trigger = false;
 }
 
 /****** FUNCTION DEFINITIONS ******/
@@ -113,3 +150,19 @@ void serialMpuDebug(sensors_event_t a, sensors_event_t g){
   
   delay(100);
  }
+
+ /*
+  * Function opens or closes the hand. 
+  */
+  void grasp(){
+    if(isOpen){
+      drvOne.motorA_fwd();
+      delay(200);
+    }
+    else{
+      drvOne.motorA_rev();
+      delay(200);
+    }
+    drvOne.motorA_stop();
+    isOpen = !isOpen;
+  }
