@@ -27,7 +27,7 @@ long a_oldPosition = -999;
 long a_newPosition;
 
 // Setting up motor Drivers
-DRV8833 drvOne(6, 7);
+DRV8833 drvOne(6, 7, 8, 9);
 
 // Hand state variables
 bool isOpen = true;
@@ -157,12 +157,15 @@ void serialMpuDebug(sensors_event_t a, sensors_event_t g){
   void grasp(){
     if(isOpen){
       drvOne.motorA_fwd();
+      drvOne.motorB_fwd();
       delay(200);
     }
     else{
       drvOne.motorA_rev();
+      drvOne.motorB_rev();
       delay(200);
     }
     drvOne.motorA_stop();
+    drvOne.motorB_stop();
     isOpen = !isOpen;
   }
