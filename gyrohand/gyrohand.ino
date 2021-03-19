@@ -23,20 +23,21 @@ Adafruit_MPU6050 mpu;
 
 // Setting up motor Encoders
 Encoder encA(2, 3); // Interrupt pins provide better results for readings
-long a_oldPosition = -999;
-long a_newPosition;
+long a_position;  // Position of encoder
+int graspThreshold = 1300; // Encoder value for full grasp
 
 // Setting up motor Drivers
-DRV8833 drvOne(6, 7, 8, 9);
+DRV8833 drvOne(5, 6, 9, 10); // Two motors for four fingers
 
 // Hand state variables
 bool isOpen = true;
 
 // Variable to see if utility is trying to be triggered
 bool trigger = false;
-int gyroThreshold = 15;
-int timeThreshold = 2000;
-int timeDebounce = 100;
+int gyroThreshold = 15; // Y-axis gyro value that will trigger function
+int timeThreshold = 2000; // Time to wait for another trigger
+int timeDebounce = 100; // Small pause delay
+// Variables to check if for timeThreshold
 int timeStart;
 int timeNow;
 
@@ -140,13 +141,10 @@ void serialMpuDebug(sensors_event_t a, sensors_event_t g){
  * Print Encoder position for motor debugging
  */
  void serialEncDebug(){
-  a_newPosition = encA.read();
+  a_position = encA.read();
 
-  if(a_newPosition != a_oldPosition){
-    a_oldPosition = a_newPosition;
-  }
   Serial.print("A Encoder: ");
-  Serial.println(a_newPosition);
+  Serial.println(a_position);
   
   delay(100);
  }
@@ -155,17 +153,26 @@ void serialMpuDebug(sensors_event_t a, sensors_event_t g){
   * Function opens or closes the hand. 
   */
   void grasp(){
+    // Close the hand if it is open. 
     if(isOpen){
-      drvOne.motorA_fwd();
-      drvOne.motorB_fwd();
-      delay(200);
-    }
+      while(a_position <= graspThreshold){
+        drvOne.motorA_fwd(200);
+        drvOne.motorB_fwd(200);
+        a_position = encA.read();
+        Serial.println(a_position);
+      }
+    }// Open the hand if it is closed. 
     else{
-      drvOne.motorA_rev();
-      drvOne.motorB_rev();
-      delay(200);
+      while(a_position >= 0){
+        drvOne.motorA_rev(200);
+        drvOne.motorB_rev(200);
+        a_position = encA.read();
+        Serial.println(a_position);
+      }
     }
+    // Stop motors.
     drvOne.motorA_stop();
     drvOne.motorB_stop();
+    // change the state of the hand. 
     isOpen = !isOpen;
   }
